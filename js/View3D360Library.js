@@ -7,32 +7,28 @@ import { GLTFLoader } from '../lib/threejs/addons/jsm/loaders/GLTFLoader.js';
 // Classes /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class View3D360 {
-  mRenderer: THREE.WebGLRenderer;
-  mScene: THREE.Scene;
-  mCamera: THREE.Camera;
-  mRayCaster: THREE.Raycaster;
-  mTextureLoader: THREE.TextureLoader;
-  m3DViewTexture: THREE.Texture;
-  m3DViewMaterial: THREE.MeshBasicMaterial;
-  m3DViewMesh: THREE.Mesh;
-  mGLTFLoader: GLTFLoader;
-  mLight: THREE.PointLight;
+  constructor(container) {
+    let mRenderer: THREE.WebGLRenderer;
+    let mScene: THREE.Scene;
+    let mCamera: THREE.Camera;
+    let mRayCaster: THREE.Raycaster;
+    let mTextureLoader: THREE.TextureLoader;
+    let m3DViewTexture: THREE.Texture;
+    let m3DViewMaterial: THREE.MeshBasicMaterial;
+    let m3DViewMesh: THREE.Mesh;
+    let mGLTFLoader: GLTFLoader;
+    let mLight: THREE.PointLight;
 
-  mContainer: HTMLElement;
+    let mIsDragging: Boolean = false;
+    let mMouseX: Number = 0;
+    let mMouseY: Number = 0;
 
-  mIsDragging: Boolean = false;
-  mMouseX: Number = 0;
-  mMouseY: Number = 0;
-
-
-
-  constructor(container: HTMLElement) {
-    this.mDocument = document;
+    let mContainer = container;
 
     this.initialize3D();
     this.initializeScene();
 
-    this.mContainer.appendChild(this.mRenderer.domElement);
+    mContainer.appendChild(this.mRenderer.domElement);
 
     document.addEventListener('mouseclick', this.onMouseClick);
     document.addEventListener('mousedown', this.onMouseDown);
@@ -171,3 +167,6 @@ class View3D360 {
     this.mRenderer.render(this.mScene, this.mCamera);
   }
 }
+
+
+export { View3D360 };
