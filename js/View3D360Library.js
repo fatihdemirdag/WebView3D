@@ -8,27 +8,27 @@ import { GLTFLoader } from '../lib/threejs/addons/jsm/loaders/GLTFLoader.js';
 
 class View3D360 {
   constructor(container) {
-    let mRenderer: THREE.WebGLRenderer;
-    let mScene: THREE.Scene;
-    let mCamera: THREE.Camera;
-    let mRayCaster: THREE.Raycaster;
-    let mTextureLoader: THREE.TextureLoader;
-    let m3DViewTexture: THREE.Texture;
-    let m3DViewMaterial: THREE.MeshBasicMaterial;
-    let m3DViewMesh: THREE.Mesh;
-    let mGLTFLoader: GLTFLoader;
-    let mLight: THREE.PointLight;
+    this.mRenderer;
+    this.mScene;
+    this.mCamera;
+    this.mRayCaster;
+    this.mTextureLoader;
+    this.m3DViewTexture;
+    this.m3DViewMaterial;
+    this.m3DViewMesh;
+    this.mGLTFLoader;
+    this.mLight;
 
-    let mIsDragging: Boolean = false;
-    let mMouseX: Number = 0;
-    let mMouseY: Number = 0;
+    this.mIsDragging = false;
+    this.mMouseX = 0;
+    this.mMouseY = 0;
 
-    let mContainer = container;
+    this.mContainer = container;
 
     this.initialize3D();
     this.initializeScene();
 
-    mContainer.appendChild(this.mRenderer.domElement);
+    this.mContainer.appendChild(this.mRenderer.domElement);
 
     document.addEventListener('mouseclick', this.onMouseClick);
     document.addEventListener('mousedown', this.onMouseDown);
@@ -163,7 +163,7 @@ class View3D360 {
 
 
   update() {
-    this.mScene.childeren.sort(compareDistances);
+    this.mScene.sort(this.compareDistances);
     this.mRenderer.render(this.mScene, this.mCamera);
   }
 }
