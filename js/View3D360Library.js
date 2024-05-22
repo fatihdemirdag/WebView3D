@@ -20,7 +20,7 @@ export class View3D360 {
     this.mLight = null;
     this.mRenderer = null;
 
-    this.mContainer = container;
+    this.mContainer = document;
     this.mIsDragging = null;
     this.mMouseX = null;
     this.mMouseY = null;
@@ -43,6 +43,7 @@ export class View3D360 {
   initialize3D() {
     console.log('Initializing 3D...');
     this.mRenderer = new THREE.WebGLRenderer({ antialias: true });
+    console.log('  Renderer Type: ' + this.mRenderer);
     this.mScene = new THREE.Scene();
     this.mCamera = new THREE.PerspectiveCamera(75,this.mContainer.clientWidth / this.mContainer.clientHeight,
       0.1, 1000);
@@ -54,6 +55,7 @@ export class View3D360 {
     //this.mRenderer.enableDepthTest = true;
 
     this.mRenderer.setSize(this.mContainer.clientWidth, this.mContainer.clientHeight, false);
+    console.log('  Width:'+ this.mContainer.clientWidth + ' Height:'+ this.mContainer.clientHeight);
     //this.mRenderer.clear(true, true, true);
 
     requestAnimationFrame(this.update);
@@ -66,6 +68,7 @@ export class View3D360 {
     console.log('Initializing scene...');
     this.mTextureLoader = new THREE.TextureLoader();
     this.m3DViewTexture = this.mTextureLoader.load('../data/location0/img5.jpg');
+    console.log('imageWidth: ' + this.m3DViewTexture.width);
     this.m3DViewTexture.colorSpace = THREE.SRGBColorSpace;
     this.m3DViewMaterial = new THREE.MeshBasicMaterial({ map: this.m3DViewTexture, color: 0xffffff });
     this.m3DViewMaterial.fog = 0.0;
