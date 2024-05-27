@@ -8,41 +8,44 @@ import { GLTFLoader } from '../lib/threejs/addons/jsm/loaders/GLTFLoader.js';
 
 class View3D360 {
   constructor(container) {
-    this.mRenderer;
-    this.mScene;
-    this.mCamera;
-    this.mRayCaster;
-    this.mTextureLoader;
-    this.m3DViewTexture;
-    this.m3DViewMaterial;
-    this.m3DViewMesh;
-    this.mGLTFLoader;
-    this.mLight;
+    this.mRenderer = null;
+    this.mScene = null;
+    this.mCamera = null;
+    this.mRayCaster = null;
+    this.mTextureLoader = null;
+    this.m3DViewTexture = null;
+    this.m3DViewMaterial = null;
+    this.m3DViewMesh = null;
+    this.mGLTFLoader = null;
+    this.mLight = null;
 
     this.mIsDragging = false;
     this.mMouseX = 0;
     this.mMouseY = 0;
 
-    this.mContainer = container;
+    this.mCamYaw = 0.0;
+    this.mCamPitch = 0.0;
 
+    this.mContainer = container;
+  }
+
+
+  init() {
     this.initialize3D();
     this.initializeScene();
-
-    this.mContainer.appendChild(this.mRenderer.domElement);
-
-    document.addEventListener('mouseclick', this.onMouseClick);
-    document.addEventListener('mousedown', this.onMouseDown);
-    document.addEventListener('mousemove', this.onMouseMove);
-    document.addEventListener('mouseup', this.onMouseUp);
   }
 
 
 
   initialize3D() {
+    console.log('function initialize3D() started');
+
     this.mRenderer = new THREE.WebGLRenderer({ antialias: true });
+    this.mContainer.appendChild(this.mRenderer.domElement);
     this.mScene = new THREE.Scene();
     this.mCamera = new THREE.PerspectiveCamera(75,this.mContainer.clientWidth / this.mContainer.clientHeight,
       0.1, 1000);
+    this.mRayCaster = new THREE.Raycaster();
 
     THREE.ColorManagement.enabled = true;
 
@@ -51,14 +54,16 @@ class View3D360 {
     //this.mRenderer.enableDepthTest = true;
 
     this.mRenderer.setSize(this.mContainer.clientWidth, this.mContainer.clientHeight, false);
-    //this.mRenderer.clear(true, true, true);
+    this.mRenderer.clear(true, true, true);
 
-    requestAnimationFrame(this.update);
+    console.log('function initialize3D() finished');
   }
 
 
 
   initializeScene() {
+    console.log('function initializeScene() started');
+
     this.mTextureLoader = new THREE.TextureLoader();
     this.m3DViewTexture = this.mTextureLoader.load('../data/location0/img5.jpg');
     this.m3DViewTexture.colorSpace = THREE.SRGBColorSpace;
@@ -87,8 +92,10 @@ class View3D360 {
     this.mCamera.position.x = 0.0;
     this.mCamera.position.y = 0.0;
     this.mCamera.position.z = 0.0;
+
     this.mLight.position.set(this.mCamera.position.x + 0.001, this.mCamera.position.y, this.mCamera.position.z);
 
+    console.log('function initializeScene() finished');
   }
 
 
@@ -136,10 +143,11 @@ class View3D360 {
       const deltaX = event.clientX - this.mMouseX;
       const deltaY = event.clientY - this.mMouseY;
 
-      this.mCamYaw += deltaX / window.innerWidth * Math.PI;
-      this.mCamPitch += deltaY / window.innerHeight * Math.PI;
+      this.mCamYaw += deltaX / this.mContainer.clientWidth * Math.PI;
+      this.mCamPitch += deltaY / this.mContainer.clientHeight * Math.PI;
       if (this.mCamPitch > 60.0 * Math.PI / 180.0) this.mCamPitch = 60.0 * Math.PI / 180.0;
       if (this.mCamPitch < -60.0 * Math.PI / 180.0) this.mCamPitch = -60.0 * Math.PI / 180.0;
+
 
       const camDir = new THREE.Vector3(0.0, 0.0, 1.0);
       camDir.y = Math.sin(this.mCamPitch);
@@ -155,7 +163,7 @@ class View3D360 {
 
 
   onMouseUp(event) {
-    this.misDragging = false;
+    this.mIsDragging = false;
     this.mMouseX = event.clientX;
     this.mMouseY = event.clientY;
   }
@@ -163,7 +171,7 @@ class View3D360 {
 
 
   update() {
-    this.mScene.sort(this.compareDistances);
+    console.log('update');
     this.mRenderer.render(this.mScene, this.mCamera);
   }
 }
