@@ -2,12 +2,40 @@
 
 import * as THREE from '../lib/threejs/Three.js';
 import { GLTFLoader } from '../lib/threejs/addons/jsm/loaders/GLTFLoader.js';
+//import {int} from "../lib/threejs/addons/jsm/nodes/shadernode/ShaderNode";
+
+
+function ViewLocation3D(id, name, x, y, z) {
+  this.id = id;
+  this.name = name;
+  this.x = x;
+  this.y = y;
+  this.z = z;
+
+  this.getDistance = function(other_view_location) {
+    return Math.sqrt(
+      Math.pow(this.x - other_view_location.x, 2) +
+      Math.pow(this.y - other_view_location.y, 2) +
+      Math.pow(this.z - other_view_location.z, 2));
+  }
+
+  this.getAngleDiff = function(other_view_location) {
+    return Math.abs(Math.atan2(other_view_location.y - this.y, other_view_location.x - this.x) -
+      Math.atan2(this.y, this.x));
+  }
+
+  this.getDirection = function(other_view_location) {
+    return Math.atan2(other_view_location.y - this.y, other_view_location.x - this.x);
+  }
+
+  return this;
+}
 
 
 // Classes /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class View3D360 {
-  constructor(container) {
+  constructor(container, filePath) {
     this.mRenderer = null;
     this.mScene = null;
     this.mCamera = null;
@@ -27,14 +55,51 @@ class View3D360 {
     this.mCamPitch = 0.0;
 
     this.mContainer = container;
+    this.mXMLFilePath = filePath;
+    this.mViewLocations = [];
+    this.mLocationsLoaded = false;
+    this.elementIndex = 0;
   }
 
 
   init() {
+    this.loadXML();
     this.initialize3D();
     this.initializeScene();
   }
 
+
+
+  async loadXML() {
+    this.mLocationsLoaded = false;
+    const file_url = 'http://localhost:63342/WebView3D/data/' + this.mXMLFilePath;
+    console.log(file_url);
+    const response = await fetch(file_url);
+    console.log(response);
+    if (!response.ok) {
+      throw new Error(response.statusText);
+    }
+
+    const xmlData = await response.text();
+    console.log('xml = ' + xmlData);
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xmlData, 'text/xml');
+    this.elementIndex = 0;
+    xmlDoc.getElementsByTagName('locationList')[0].childNodes.forEach(element => {
+      console.log('element Index: ' + this.elementIndex + '  value: ' + element.nodeName);
+      if (element.nodeName === 'location') {
+        const id = element.getAttribute('id');
+        const name = element.getAttribute('name');
+        const x = parseFloat(element.getAttribute('x'));
+        const y = parseFloat(element.getAttribute('y'));
+        const z = parseFloat(element.getAttribute('z'));
+        this.mViewLocations.push(new ViewLocation3D(id, name, x, y, z));
+      }
+      this.elementIndex++;
+
+    });
+    this.mLocationsLoaded = true;
+  }
 
 
   initialize3D() {
@@ -171,7 +236,9 @@ class View3D360 {
 
 
   update() {
-    console.log('update');
+    if (this.mLocationsLoaded) {
+      //this.showLocations();
+    }
     this.mRenderer.render(this.mScene, this.mCamera);
   }
 }

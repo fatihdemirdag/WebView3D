@@ -1,7 +1,7 @@
 import * as View360 from './View3D360Library.js';
 
 
-let viewer = new View360.View3D360(document.body);
+let viewer = new View360.View3D360(document.body, 'location0/data.xml');
 viewer.init();
 
 document.addEventListener('mouseclick', onMouseClick);
