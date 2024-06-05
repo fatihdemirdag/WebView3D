@@ -5,12 +5,13 @@ import { GLTFLoader } from '../lib/threejs/addons/jsm/loaders/GLTFLoader.js';
 //import {int} from "../lib/threejs/addons/jsm/nodes/shadernode/ShaderNode";
 
 
-function ViewLocation3D(id, name, x, y, z) {
+function ViewLocation3D(id, name, x, y, z, fileName) {
   this.id = id;
   this.name = name;
   this.x = x;
   this.y = y;
   this.z = z;
+  this.fileName = fileName;
 
   this.getDistance = function(other_view_location) {
     return Math.sqrt(
@@ -62,8 +63,9 @@ class View3D360 {
   }
 
 
-  init() {
-    this.loadXML();
+  async init() {
+    await this.loadXML();
+    this.reportLocations();
     this.initialize3D();
     this.initializeScene();
   }
@@ -73,32 +75,40 @@ class View3D360 {
   async loadXML() {
     this.mLocationsLoaded = false;
     const file_url = 'http://localhost:63342/WebView3D/data/' + this.mXMLFilePath;
-    console.log(file_url);
     const response = await fetch(file_url);
-    console.log(response);
     if (!response.ok) {
       throw new Error(response.statusText);
     }
 
     const xmlData = await response.text();
-    console.log('xml = ' + xmlData);
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(xmlData, 'text/xml');
     this.elementIndex = 0;
     xmlDoc.getElementsByTagName('locationList')[0].childNodes.forEach(element => {
-      console.log('element Index: ' + this.elementIndex + '  value: ' + element.nodeName);
       if (element.nodeName === 'location') {
         const id = element.getAttribute('id');
         const name = element.getAttribute('name');
         const x = parseFloat(element.getAttribute('x'));
         const y = parseFloat(element.getAttribute('y'));
         const z = parseFloat(element.getAttribute('z'));
-        this.mViewLocations.push(new ViewLocation3D(id, name, x, y, z));
+        const fileName = element.getAttribute('fileName');
+        this.mViewLocations.push(new ViewLocation3D(id, name, x, y, z, fileName));
       }
       this.elementIndex++;
 
     });
     this.mLocationsLoaded = true;
+  }
+
+
+  reportLocations() {
+    console.log('function reportLocations() started' + this.mViewLocations.length);
+    for (let i = 0; i < this.mViewLocations.length; i++)
+    {
+      console.log(this.mViewLocations[i].id +'' + this.mViewLocations[i].name +'' +
+        this.mViewLocations[i].x +'' + this.mViewLocations[i].y +'' +
+        this.mViewLocations[i].z +'' + this.mViewLocations[i].fileName);
+    }
   }
 
 
@@ -142,7 +152,7 @@ class View3D360 {
 
     this.m3DViewMesh = new THREE.Object3D();
     this.mGLTFLoader = new GLTFLoader(); // Assuming glTF format
-    this.mGLTFLoader.load('../sphere.gltf', (gltf) => {
+    this.mGLTFLoader.load('sphere.gltf', (gltf) => {
       const model = gltf.scene.children[0]; // Extract the scene from the loaded glTF data
 
       model.material = this.m3DViewMaterial;
@@ -213,7 +223,6 @@ class View3D360 {
       if (this.mCamPitch > 60.0 * Math.PI / 180.0) this.mCamPitch = 60.0 * Math.PI / 180.0;
       if (this.mCamPitch < -60.0 * Math.PI / 180.0) this.mCamPitch = -60.0 * Math.PI / 180.0;
 
-
       const camDir = new THREE.Vector3(0.0, 0.0, 1.0);
       camDir.y = Math.sin(this.mCamPitch);
       camDir.x = Math.cos(this.mCamPitch) * Math.sin(this.mCamYaw);
@@ -237,9 +246,9 @@ class View3D360 {
 
   update() {
     if (this.mLocationsLoaded) {
-      //this.showLocations();
+      this.mRenderer.render(this.mScene, this.mCamera);
     }
-    this.mRenderer.render(this.mScene, this.mCamera);
+
   }
 }
 
