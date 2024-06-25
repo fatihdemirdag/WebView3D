@@ -8,6 +8,10 @@ document.addEventListener('mouseclick', onMouseClick);
 document.addEventListener('mousedown', onMouseDown);
 document.addEventListener('mousemove', onMouseMove);
 document.addEventListener('mouseup', onMouseUp);
+
+document.addEventListener('touchstart', onTouchStart);
+document.addEventListener('touchmove', onTouchMove);
+document.addEventListener('touchend', onTouchEnd);
 requestAnimationFrame(animate);
 
 
@@ -25,6 +29,25 @@ function onMouseMove(event) {
 
 function onMouseUp(event) {
   viewer.onMouseUp(event);
+}
+
+
+function onTouchStart(event) {
+  // Prevent the default behavior of touchstart event
+  //event.preventDefault();
+  viewer.onMouseDown(event.touches[0]);
+}
+
+function onTouchMove(event) {
+  // Prevent the default behavior of touchmove event
+  //event.preventDefault();
+  viewer.onMouseMove(event.touches[0]);
+}
+
+function onTouchEnd(event) {
+  // Prevent the default behavior of touchend event
+  //event.preventDefault();
+  viewer.onMouseUp(event.changedTouches[0]);
 }
 
 function animate(){
