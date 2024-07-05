@@ -22,23 +22,15 @@ function ViewLocation3D(id, name, x, y, z, fileName) {
   this.mesh.position.x = this.x;
   this.mesh.position.y = this.z - 1.5;
   this.mesh.position.z = this.y;
-  /*
-  this.getDistance = function(other_view_location) {
-    return Math.sqrt(
-      Math.pow(this.x - other_view_location.x, 2) +
-      Math.pow(this.y - other_view_location.y, 2) +
-      Math.pow(this.z - other_view_location.z, 2));
-  }
 
-  this.getAngleDiff = function(other_view_location) {
-    return Math.abs(Math.atan2(other_view_location.y - this.y, other_view_location.x - this.x) -
-      Math.atan2(this.y, this.x));
-  }
+  return this;
+}
 
-  this.getDirection = function(other_view_location) {
-    return Math.atan2(other_view_location.y - this.y, other_view_location.x - this.x);
-  }
-  */
+
+function Relation(fromID, toID) {
+  this.fromID = fromID;
+  this.toID = toID;
+
   return this;
 }
 
@@ -70,6 +62,7 @@ class View3D360 {
     this.mCamPitch = 0.0;
 
     this.mViewLocations = [];
+    this.mRelations = [];
     this.mLocationsLoaded = false;
     this.mElementIndex = 0;
     this.mActiveElementIndex = 0;
@@ -99,7 +92,8 @@ class View3D360 {
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(xmlData, 'text/xml');
     this.mElementIndex = 0;
-    xmlDoc.getElementsByTagName('locationList')[0].childNodes.forEach(element => {
+    const eEnv= xmlDoc.getElementsByTagName('environment')[0];
+    eEnv.getElementsByTagName('locationList')[0].childNodes.forEach(element => {
       if (element.nodeName === 'location') {
         const id = element.getAttribute('id');
         const name = element.getAttribute('name');
@@ -110,7 +104,14 @@ class View3D360 {
         this.mViewLocations.push(new ViewLocation3D(id, name, x, y, z, fileName));
       }
       this.mElementIndex++;
+    });
 
+    eEnv.getElementsByTagName('relationList')[0].childNodes.forEach(element => {
+      if (element.nodeName === 'relation') {
+        const fromID = element.getAttribute('fromID');
+        const toID = element.getAttribute('toID');
+        this.mRelations.push(new Relation(fromID, toID));
+      }
     });
     this.mLocationsLoaded = true;
     this.mActiveElementIndex = 0;
@@ -165,9 +166,19 @@ class View3D360 {
   relocateSpheres(id) {
     for (let i = 0; i < this.mViewLocations.length; i++)
     {
+      this.mViewLocations[i].mesh.visible = false;
       this.mViewLocations[i].mesh.position.x = this.mViewLocations[i].x - this.mViewLocations[id].x;
       this.mViewLocations[i].mesh.position.y = this.mViewLocations[i].z - this.mViewLocations[id].z - 1.5;
       this.mViewLocations[i].mesh.position.z = this.mViewLocations[i].y - this.mViewLocations[id].y;
+    }
+
+    for (let i = 0; i < this.mRelations.length; i++)
+    {
+      if (this.mRelations[i].fromID === this.mViewLocations[id].id)
+        this.mViewLocations[this.mRelations[i].toID].mesh.visible = true;
+
+      if (this.mRelations[i].toID === this.mViewLocations[id].id)
+        this.mViewLocations[this.mRelations[i].fromID].mesh.visible = true;
     }
   }
 

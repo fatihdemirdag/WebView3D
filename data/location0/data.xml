@@ -1,5 +1,11 @@
-<locationList id="5">
-	<location id="0" name="park girisi" x="0.0" y="0.0" z="0.0" image="img0.jpg"/>
-	<location id="1" name="park sag taraf" x="5.0" y="0.0" z="0.0" image="img1.jpg"/>
-	<location id="2" name="park sol taraf" x="0.0" y="5.0" z="0.0" image="img2.jpg"/>
-</locationList>
+<environment>
+  <locationList id="5">
+    <location id="0" name="park girisi" x="0.0" y="0.0" z="0.0" image="img0.jpg"/>
+    <location id="1" name="park sag taraf" x="5.0" y="0.0" z="0.0" image="img1.jpg"/>
+    <location id="2" name="park sol taraf" x="0.0" y="5.0" z="0.0" image="img2.jpg"/>
+  </locationList>
+  <relationList>
+    <relation fromID="0" toID="1"/>
+    <relation fromID="0" toID="2"/>
+  </relationList>
+</environment>
