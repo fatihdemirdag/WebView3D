@@ -23,9 +23,6 @@
 			"doubleSided":true,
 			"name":"Material.001",
 			"pbrMetallicRoughness":{
-				"baseColorTexture":{
-					"index":0
-				},
 				"metallicFactor":0,
 				"roughnessFactor":0.5
 			}
@@ -47,24 +44,11 @@
 			]
 		}
 	],
-	"textures":[
-		{
-			"sampler":0,
-			"source":0
-		}
-	],
-	"images":[
-		{
-			"mimeType":"image/jpeg",
-			"name":"img2",
-			"uri":"img2.jpg"
-		}
-	],
 	"accessors":[
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":258435,
+			"count":279706,
 			"max":[
 				0.49999937415122986,
 				0.5,
@@ -80,13 +64,13 @@
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":258435,
+			"count":279706,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":258435,
+			"count":279706,
 			"type":"VEC2"
 		},
 		{
@@ -99,38 +83,32 @@
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":3101220,
+			"byteLength":3356472,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":3101220,
-			"byteOffset":3101220,
+			"byteLength":3356472,
+			"byteOffset":3356472,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":2067480,
-			"byteOffset":6202440,
+			"byteLength":2237648,
+			"byteOffset":6712944,
 			"target":34962
 		},
 		{
 			"buffer":0,
 			"byteLength":1546560,
-			"byteOffset":8269920,
+			"byteOffset":8950592,
 			"target":34963
-		}
-	],
-	"samplers":[
-		{
-			"magFilter":9729,
-			"minFilter":9987
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":9816480,
+			"byteLength":10497152,
 			"uri":"sphere.bin"
 		}
 	]

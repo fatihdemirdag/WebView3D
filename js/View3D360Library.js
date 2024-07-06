@@ -66,6 +66,9 @@ class View3D360 {
     this.mLocationsLoaded = false;
     this.mElementIndex = 0;
     this.mActiveElementIndex = 0;
+    this.mTransitionActive = false;
+    this.mTransitionFrame = 0.0;
+    this.mMoveVector = new THREE.Vector3(0, 0, 0);
   }
 
 
@@ -120,16 +123,13 @@ class View3D360 {
 
 
   addLocationsToScene() {
-    console.log('function addLocationsToScene() started');
     for (let i = 0; i < this.mViewLocations.length; i++) {
       this.mScene.add(this.mViewLocations[i].mesh);
     }
-    console.log('function addLocationsToScene() finished');
   }
 
 
   reportLocations() {
-    console.log('function reportLocations() started' + this.mViewLocations.length);
     for (let i = 0; i < this.mViewLocations.length; i++)
     {
       console.log(this.mViewLocations[i].id +'' + this.mViewLocations[i].name +'' +
@@ -140,8 +140,6 @@ class View3D360 {
 
 
   initialize3D() {
-    console.log('function initialize3D() started');
-
     this.mRenderer = new THREE.WebGLRenderer({ antialias: true });
     this.mContainer.appendChild(this.mRenderer.domElement);
     this.mScene = new THREE.Scene();
@@ -157,8 +155,6 @@ class View3D360 {
 
     this.mRenderer.setSize(this.mContainer.clientWidth, this.mContainer.clientHeight, false);
     this.mRenderer.clear(true, true, true);
-
-    console.log('function initialize3D() finished');
   }
 
 
@@ -166,7 +162,6 @@ class View3D360 {
   relocateSpheres(id) {
     for (let i = 0; i < this.mViewLocations.length; i++)
     {
-      this.mViewLocations[i].mesh.visible = false;
       this.mViewLocations[i].mesh.position.x = this.mViewLocations[i].x - this.mViewLocations[id].x;
       this.mViewLocations[i].mesh.position.y = this.mViewLocations[i].z - this.mViewLocations[id].z - 1.5;
       this.mViewLocations[i].mesh.position.z = this.mViewLocations[i].y - this.mViewLocations[id].y;
@@ -184,14 +179,42 @@ class View3D360 {
 
 
 
-  switchToLocation(id) {
+  hideAllSpheres() {
+    for (let i = 0; i < this.mViewLocations.length; i++) {
+      this.mViewLocations[i].mesh.visible = false;
+    }
+  }
+
+
+
+  beginSwitchToLocation(id) {
+    this.mTransitionActive = true;
+    this.mTransitionFrame = 0;
+    this.mMoveVector = new THREE.Vector3(
+      (this.mViewLocations[id].x - this.mViewLocations[this.mActiveElementIndex].x),
+      (this.mViewLocations[id].z - this.mViewLocations[this.mActiveElementIndex].z),
+      (this.mViewLocations[id].y - this.mViewLocations[this.mActiveElementIndex].y));
+
+    this.mMoveVector.normalize();
+    this.mMoveVector = this.mMoveVector.multiplyScalar(0.6);
+
+    this.hideAllSpheres();
+  }
+
+
+  async endSwitchToLocation(id) {
+    this.mTextureLoader = new THREE.TextureLoader();
     this.m3DViewTexture = this.mTextureLoader.load('../data/' + this.mLocationPath + this.mViewLocations[id].fileName);
-    this.m3DViewTexture.colorSpace = THREE.SRGBColorSpace;
-    this.m3DViewMaterial = new THREE.MeshBasicMaterial({ map: this.m3DViewTexture, color: 0xffffff });
-    this.m3DViewMaterial.fog = 0.0;
-    this.m3DViewMaterial.toneMapped = false;
+    this.m3DViewMaterial = new THREE.MeshBasicMaterial({ map: this.m3DViewTexture, color: 0xffffff, fog: 0.0,
+      toneMapped: false, wireframe: false });
 
     this.m3DViewMesh.material = this.m3DViewMaterial;
+    this.mCamera.position.x = 0.0;
+    this.mCamera.position.y = 0.0;
+    this.mCamera.position.z = 0.0;
+
+    this.mActiveElementIndex = id;
+    this.mTransitionActive = false;
 
     this.relocateSpheres(id);
   }
@@ -199,15 +222,12 @@ class View3D360 {
 
 
   initializeScene() {
-    console.log('function initializeScene() started');
-
     this.mTextureLoader = new THREE.TextureLoader();
     this.m3DViewTexture = this.mTextureLoader.load('../data/' + this.mLocationPath +
       this.mViewLocations[this.mActiveElementIndex].fileName);
-    this.m3DViewTexture.colorSpace = THREE.SRGBColorSpace;
-    this.m3DViewMaterial = new THREE.MeshBasicMaterial({ map: this.m3DViewTexture, color: 0xffffff });
-    this.m3DViewMaterial.fog = 0.0;
-    this.m3DViewMaterial.toneMapped = false;
+    //this.m3DViewTexture.colorSpace = THREE.SRGBColorSpace;
+    this.m3DViewMaterial = new THREE.MeshBasicMaterial({ map: this.m3DViewTexture, color: 0xffffff,
+      fog: 0.0, toneMapped: false, wireframe: false });
 
     this.mLight = new THREE.PointLight( 0xffffff, 2.0, 1000.0, 0.0 );
     this.mScene.add(this.mLight);
@@ -232,30 +252,28 @@ class View3D360 {
     this.mCamera.position.z = 0.0;
 
     this.mLight.position.set(this.mCamera.position.x + 0.001, this.mCamera.position.y, this.mCamera.position.z);
-
-    console.log('function initializeScene() finished');
   }
 
 
 
   onMouseClick(event) {
-    const mouse = new THREE.Vector2(
-      (event.clientX / window.innerWidth) * 2 - 1,
-      -(event.clientY / window.innerHeight) * 2 + 1
-    );
+    if (!this.mTransitionActive) {
+      const mouse = new THREE.Vector2(
+        (event.clientX / window.innerWidth) * 2 - 1,
+        -(event.clientY / window.innerHeight) * 2 + 1
+      );
 
-    this.mRayCaster.setFromCamera(mouse, this.mCamera);
-    const intersects = this.mRayCaster.intersectObjects(this.mScene.children, true);
-    if (intersects.length > 0) {
-      const clickedObject = intersects[0].object;
-      if (clickedObject.scale.y < 2.0)
-      {
-        for (let i = 0; i < this.mViewLocations.length; i++) {
-          if (this.mViewLocations[i].mesh.id === clickedObject.id)
-          {
-            this.switchToLocation(i);
-            this.mActiveElementIndex = i;
-            break;
+      this.mRayCaster.setFromCamera(mouse, this.mCamera);
+      const intersects = this.mRayCaster.intersectObjects(this.mScene.children, true);
+      if (intersects.length > 0) {
+        const clickedObject = intersects[0].object;
+        if (clickedObject.scale.y < 2.0) {
+          for (let i = 0; i < this.mViewLocations.length; i++) {
+            if (this.mViewLocations[i].mesh.id === clickedObject.id) {
+              this.beginSwitchToLocation(i);
+              this.mActiveElementIndex = i;
+              break;
+            }
           }
         }
       }
@@ -265,17 +283,19 @@ class View3D360 {
 
 
   onMouseDown(event) {
-    this.mIsDragging = true;
-    this.mMouseX = event.clientX;
-    this.mMouseY = event.clientY;
+    if (!this.mTransitionActive) {
+      this.mIsDragging = true;
+      this.mMouseX = event.clientX;
+      this.mMouseY = event.clientY;
 
-    this.onMouseClick(event);
+      this.onMouseClick(event);
+    }
   }
 
 
 
   onMouseMove(event) {
-    if (this.mIsDragging) {
+    if (this.mIsDragging && !this.mTransitionActive) {
       const deltaX = event.clientX - this.mMouseX;
       const deltaY = event.clientY - this.mMouseY;
 
@@ -298,15 +318,26 @@ class View3D360 {
 
 
   onMouseUp(event) {
-    this.mIsDragging = false;
-    this.mMouseX = event.clientX;
-    this.mMouseY = event.clientY;
+    if (!this.mTransitionActive) {
+      this.mIsDragging = false;
+      this.mMouseX = event.clientX;
+      this.mMouseY = event.clientY;
+    }
   }
 
 
 
-  update() {
+  async update() {
     if (this.mLocationsLoaded) {
+      if (this.mTransitionActive) {
+        this.mIsDragging = false;
+        this.mTransitionFrame += 1.0;
+        this.mCamera.position.add(this.mMoveVector);
+        if (this.mTransitionFrame >= 30) {
+          this.mTransitionActive = false;
+          this.endSwitchToLocation(this.mActiveElementIndex);
+        }
+      }
       this.mRenderer.render(this.mScene, this.mCamera);
     }
   }
