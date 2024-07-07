@@ -304,7 +304,7 @@ class View3D360 {
           for (let i = 0; i < this.mViewLocations.length; i++) {
             if (this.mViewLocations[i].mesh.id === clickedObject.id || this.mViewLocations[i].mesh2.id === clickedObject.id) {
               this.beginSwitchToLocation(i);
-              this.mActiveElementIndex = i;
+              //this.mActiveElementIndex = i;
               break;
             }
           }
