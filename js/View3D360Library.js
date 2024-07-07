@@ -12,16 +12,28 @@ function ViewLocation3D(id, name, x, y, z, fileName, rotate) {
   this.y = y;
   this.z = z;
   this.fileName = fileName;
-  this.geometry = new THREE.SphereGeometry(0.4);
+  this.geometry = new THREE.SphereGeometry(0.3);
   this.geometry.scale(1.0, 0.05, 1.0);
   this.geometry.visible = true;
-  this.material = new THREE.MeshBasicMaterial({color: 0xffffff, wireframe:false, opacity: 0.3,
+  this.material = new THREE.MeshBasicMaterial({color: 0xffffff, wireframe:false, opacity: 0.4,
     blending: THREE.NormalBlending, transparent: true});
   this.mesh = new THREE.Mesh(this.geometry, this.material);
   this.mesh.name = this.name;
   this.mesh.position.x = this.x;
   this.mesh.position.y = this.z - 1.5;
   this.mesh.position.z = this.y;
+
+  this.geometry2 = new THREE.SphereGeometry(0.5);
+  this.geometry2.scale(1.0, 0.2, 1.0);
+  this.geometry2.visible = true;
+  this.material2 = new THREE.MeshBasicMaterial({color: 0xffffff, wireframe:false, opacity: 0.05,
+    blending: THREE.NormalBlending, transparent: true});
+  this.mesh2 = new THREE.Mesh(this.geometry2, this.material2);
+  this.mesh2.name = this.name;
+  this.mesh2.position.x = this.x;
+  this.mesh2.position.y = this.z - 1.5;
+  this.mesh2.position.z = this.y;
+
   this.rotate = rotate;
 
   return this;
@@ -67,6 +79,7 @@ class View3D360 {
     this.mLocationsLoaded = false;
     this.mElementIndex = 0;
     this.mActiveElementIndex = 0;
+    this.mTransitionElementIndex = 0;
     this.mTransitionActive = false;
     this.mTransitionFrame = 0.0;
     this.mMoveVector = new THREE.Vector3(0, 0, 0);
@@ -133,6 +146,7 @@ class View3D360 {
   addLocationsToScene() {
     for (let i = 0; i < this.mViewLocations.length; i++) {
       this.mScene.add(this.mViewLocations[i].mesh);
+      this.mScene.add(this.mViewLocations[i].mesh2);
     }
   }
 
@@ -173,15 +187,23 @@ class View3D360 {
       this.mViewLocations[i].mesh.position.x = this.mViewLocations[i].x - this.mViewLocations[id].x;
       this.mViewLocations[i].mesh.position.y = this.mViewLocations[i].z - this.mViewLocations[id].z - this.tripod_height;
       this.mViewLocations[i].mesh.position.z = this.mViewLocations[i].y - this.mViewLocations[id].y;
+
+      this.mViewLocations[i].mesh2.position.x = this.mViewLocations[i].x - this.mViewLocations[id].x;
+      this.mViewLocations[i].mesh2.position.y = this.mViewLocations[i].z - this.mViewLocations[id].z - this.tripod_height;
+      this.mViewLocations[i].mesh2.position.z = this.mViewLocations[i].y - this.mViewLocations[id].y;
     }
 
     for (let i = 0; i < this.mRelations.length; i++)
     {
-      if (this.mRelations[i].fromID === this.mViewLocations[id].id)
+      if (this.mRelations[i].fromID === this.mViewLocations[id].id) {
         this.mViewLocations[this.mRelations[i].toID].mesh.visible = true;
+        this.mViewLocations[this.mRelations[i].toID].mesh2.visible = true;
+      }
 
-      if (this.mRelations[i].toID === this.mViewLocations[id].id)
+      if (this.mRelations[i].toID === this.mViewLocations[id].id) {
         this.mViewLocations[this.mRelations[i].fromID].mesh.visible = true;
+        this.mViewLocations[this.mRelations[i].fromID].mesh2.visible = true;
+      }
     }
   }
 
@@ -190,6 +212,7 @@ class View3D360 {
   hideAllSpheres() {
     for (let i = 0; i < this.mViewLocations.length; i++) {
       this.mViewLocations[i].mesh.visible = false;
+      this.mViewLocations[i].mesh2.visible = false;
     }
   }
 
@@ -204,7 +227,9 @@ class View3D360 {
       (this.mViewLocations[id].y - this.mViewLocations[this.mActiveElementIndex].y));
 
     this.mMoveVector.normalize();
-    this.mMoveVector = this.mMoveVector.multiplyScalar(0.6);
+    this.mMoveVector = this.mMoveVector.multiplyScalar(0.2);
+
+    this.mTransitionElementIndex = id;
 
     this.hideAllSpheres();
   }
@@ -277,7 +302,7 @@ class View3D360 {
         const clickedObject = intersects[0].object;
         if (clickedObject.scale.y < 2.0) {
           for (let i = 0; i < this.mViewLocations.length; i++) {
-            if (this.mViewLocations[i].mesh.id === clickedObject.id) {
+            if (this.mViewLocations[i].mesh.id === clickedObject.id || this.mViewLocations[i].mesh2.id === clickedObject.id) {
               this.beginSwitchToLocation(i);
               this.mActiveElementIndex = i;
               break;
@@ -347,7 +372,7 @@ class View3D360 {
         this.mCamera.position.add(this.mMoveVector);
         if (this.mTransitionFrame >= 30) {
           this.mTransitionActive = false;
-          this.endSwitchToLocation(this.mActiveElementIndex);
+          this.endSwitchToLocation(this.mTransitionElementIndex);
         }
       }
       this.mRenderer.render(this.mScene, this.mCamera);
