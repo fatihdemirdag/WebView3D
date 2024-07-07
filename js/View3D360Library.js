@@ -5,7 +5,7 @@ import { GLTFLoader } from '../lib/threejs/addons/jsm/loaders/GLTFLoader.js';
 //import {int} from "../lib/threejs/addons/jsm/nodes/shadernode/ShaderNode";
 
 
-function ViewLocation3D(id, name, x, y, z, fileName) {
+function ViewLocation3D(id, name, x, y, z, fileName, rotate) {
   this.id = id;
   this.name = name;
   this.x = x;
@@ -22,6 +22,7 @@ function ViewLocation3D(id, name, x, y, z, fileName) {
   this.mesh.position.x = this.x;
   this.mesh.position.y = this.z - 1.5;
   this.mesh.position.z = this.y;
+  this.rotate = rotate;
 
   return this;
 }
@@ -69,6 +70,9 @@ class View3D360 {
     this.mTransitionActive = false;
     this.mTransitionFrame = 0.0;
     this.mMoveVector = new THREE.Vector3(0, 0, 0);
+    this.tripod_height = 0.0;
+
+    this.rotation = new THREE.Vector3(0.0, 0.0, 0.0);
   }
 
 
@@ -96,6 +100,9 @@ class View3D360 {
     const xmlDoc = parser.parseFromString(xmlData, 'text/xml');
     this.mElementIndex = 0;
     const eEnv= xmlDoc.getElementsByTagName('environment')[0];
+    const eLocList = eEnv.getElementsByTagName('locationList')[0];
+    this.tripod_height  = parseFloat(eLocList.getAttribute('height'));
+
     eEnv.getElementsByTagName('locationList')[0].childNodes.forEach(element => {
       if (element.nodeName === 'location') {
         const id = element.getAttribute('id');
@@ -104,7 +111,8 @@ class View3D360 {
         const y = parseFloat(element.getAttribute('y'));
         const z = parseFloat(element.getAttribute('z'));
         const fileName = element.getAttribute('image');
-        this.mViewLocations.push(new ViewLocation3D(id, name, x, y, z, fileName));
+        const rotate = parseFloat(element.getAttribute('rotate'));
+        this.mViewLocations.push(new ViewLocation3D(id, name, x, y, z, fileName, rotate));
       }
       this.mElementIndex++;
     });
@@ -163,7 +171,7 @@ class View3D360 {
     for (let i = 0; i < this.mViewLocations.length; i++)
     {
       this.mViewLocations[i].mesh.position.x = this.mViewLocations[i].x - this.mViewLocations[id].x;
-      this.mViewLocations[i].mesh.position.y = this.mViewLocations[i].z - this.mViewLocations[id].z - 1.5;
+      this.mViewLocations[i].mesh.position.y = this.mViewLocations[i].z - this.mViewLocations[id].z - this.tripod_height;
       this.mViewLocations[i].mesh.position.z = this.mViewLocations[i].y - this.mViewLocations[id].y;
     }
 
@@ -328,6 +336,10 @@ class View3D360 {
 
 
   async update() {
+    if (this.m3DViewMesh != undefined) {
+      this.m3DViewMesh.rotation.y = this.mViewLocations[this.mActiveElementIndex].rotate * 3.14159265 / 180.0;
+    }
+
     if (this.mLocationsLoaded) {
       if (this.mTransitionActive) {
         this.mIsDragging = false;

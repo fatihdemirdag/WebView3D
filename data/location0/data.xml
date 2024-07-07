@@ -1,11 +1,12 @@
 <environment>
-  <locationList id="5">
-    <location id="0" name="park girisi" x="0.0" y="0.0" z="0.0" image="img0.jpg"/>
-    <location id="1" name="park sag taraf" x="5.0" y="0.0" z="0.0" image="img1.jpg"/>
-    <location id="2" name="park sol taraf" x="0.0" y="5.0" z="0.0" image="img2.jpg"/>
+  <locationList height="1.75">
+    <location id="0" name="sahne" x="0.0" y="0.0" z="0.0" image="A01.jpg" rotate="0"/>
+    <location id="1" name="sahne ileri" x="-2.8" y="-1.4" z="0.0" image="A02.jpg" rotate="43"/>
+    <location id="2" name="sahne-gelinyolu" x="-5.7" y="1.8" z="0.0" image="A03.jpg" rotate="12"/>
   </locationList>
   <relationList>
     <relation fromID="0" toID="1"/>
     <relation fromID="0" toID="2"/>
+    <relation fromID="1" toID="2"/>
   </relationList>
 </environment>
