@@ -23,8 +23,8 @@ function ViewLocation3D(id, name, x, y, z, fileName, rotate) {
   this.mesh.position.y = this.z - 1.5;
   this.mesh.position.z = this.y;
 
-  this.geometry2 = new THREE.SphereGeometry(0.5);
-  this.geometry2.scale(1.0, 0.2, 1.0);
+  this.geometry2 = new THREE.SphereGeometry(0.6);
+  this.geometry2.scale(1.0, 0.3, 1.0);
   this.geometry2.visible = true;
   this.material2 = new THREE.MeshBasicMaterial({color: 0xffffff, wireframe:false, opacity: 0.05,
     blending: THREE.NormalBlending, transparent: true});
@@ -165,7 +165,7 @@ class View3D360 {
     this.mRenderer = new THREE.WebGLRenderer({ antialias: true });
     this.mContainer.appendChild(this.mRenderer.domElement);
     this.mScene = new THREE.Scene();
-    this.mCamera = new THREE.PerspectiveCamera(75,this.mContainer.clientWidth / this.mContainer.clientHeight,
+    this.mCamera = new THREE.PerspectiveCamera(60,this.mContainer.clientWidth / this.mContainer.clientHeight,
       0.1, 1000);
     this.mRayCaster = new THREE.Raycaster();
 
@@ -304,7 +304,6 @@ class View3D360 {
           for (let i = 0; i < this.mViewLocations.length; i++) {
             if (this.mViewLocations[i].mesh.id === clickedObject.id || this.mViewLocations[i].mesh2.id === clickedObject.id) {
               this.beginSwitchToLocation(i);
-              //this.mActiveElementIndex = i;
               break;
             }
           }
